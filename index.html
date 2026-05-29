@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Prediction</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="bg-animation">
+    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+    <div class="bubble"></div><div class="bubble"></div>
+  </div>
+
+  <div class="container">
+
+    <div class="header">
+      <div class="logo-icon"><i class="fas fa-landmark"></i></div>
+      <h1>Loan Eligibility Predictor</h1>
+      <p class="subtitle">Fill in your details to check loan eligibility instantly</p>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- Age -->
+      <div class="field-group">
+        <label><i class="fas fa-user"></i> Age <span class="hint">(18 - 70 years)</span></label>
+        <input id="age" type="number" min="18" max="70" placeholder="e.g. 35" />
+      </div>
+
+      <!-- Experience -->
+      <div class="field-group">
+        <label><i class="fas fa-briefcase"></i> Work Experience <span class="hint">(0 - 43 years)</span></label>
+        <input id="experience" type="number" min="0" max="43" placeholder="e.g. 10" />
+      </div>
+
+      <!-- Income -->
+      <div class="field-group">
+        <label><i class="fas fa-dollar-sign"></i> Annual Income <span class="hint">(in $000s, e.g. 50 = $50K)</span></label>
+        <input id="income" type="number" min="8" max="224" placeholder="e.g. 60" />
+      </div>
+
+      <!-- Family -->
+      <div class="field-group">
+        <label><i class="fas fa-users"></i> Family Size <span class="hint">(number of members)</span></label>
+        <select id="family">
+          <option value="" disabled selected>Select family size</option>
+          <option value="1">1 - Single</option>
+          <option value="2">2 - Couple</option>
+          <option value="3">3 - Small Family</option>
+          <option value="4">4 - Large Family</option>
+        </select>
+      </div>
+
+      <!-- CCAvg -->
+      <div class="field-group">
+        <label><i class="fas fa-credit-card"></i> Monthly Credit Card Spending <span class="hint">(in $000s, e.g. 1.5 = $1500)</span></label>
+        <input id="ccavg" type="number" min="0" max="10" step="0.1" placeholder="e.g. 1.5" />
+      </div>
+
+      <!-- Education -->
+      <div class="field-group">
+        <label><i class="fas fa-graduation-cap"></i> Education Level</label>
+        <select id="education">
+          <option value="" disabled selected>Select education level</option>
+          <option value="1">1 - Undergraduate</option>
+          <option value="2">2 - Graduate</option>
+          <option value="3">3 - Advanced/Professional</option>
+        </select>
+      </div>
+
+      <!-- Mortgage -->
+      <div class="field-group">
+        <label><i class="fas fa-home"></i> Mortgage Value <span class="hint">(in $000s, 0 if none)</span></label>
+        <input id="mortgage" type="number" min="0" max="635" placeholder="e.g. 0 or 200" />
+      </div>
+
+      <!-- Securities Account -->
+      <div class="field-group">
+        <label><i class="fas fa-chart-line"></i> Securities Account</label>
+        <select id="securities">
+          <option value="0">No - I don't have one</option>
+          <option value="1">Yes - I have a securities account</option>
+        </select>
+      </div>
+
+      <!-- CD Account -->
+      <div class="field-group">
+        <label><i class="fas fa-piggy-bank"></i> Certificate of Deposit (CD) Account</label>
+        <select id="cd_account">
+          <option value="0">No - I don't have one</option>
+          <option value="1">Yes - I have a CD account</option>
+        </select>
+      </div>
+
+      <!-- Online Banking -->
+      <div class="field-group">
+        <label><i class="fas fa-wifi"></i> Online Banking</label>
+        <select id="online">
+          <option value="0">No - I use offline banking</option>
+          <option value="1">Yes - I use online banking</option>
+        </select>
+      </div>
+
+      <!-- Credit Card -->
+      <div class="field-group">
+        <label><i class="fas fa-wallet"></i> Bank Credit Card</label>
+        <select id="creditcard">
+          <option value="0">No - I don't have a bank credit card</option>
+          <option value="1">Yes - I have a bank credit card</option>
+        </select>
+      </div>
+
+    </div>
+
+    <button class="predict-btn" onclick="predictLoan()">
+      <span id="btn-text"><i class="fas fa-search-dollar"></i> Check Eligibility</span>
+      <span id="btn-loader" style="display:none;"><i class="fas fa-spinner fa-spin"></i> Analyzing...</span>
+    </button>
+
+    {% if error %}
+      <div class="error-message">{{ error }}</div>
+    {% endif %}
+
+    <div class="footer-link">
+      <a href="/analytics"><i class="fas fa-chart-bar"></i> View Full Analytics Dashboard</a>
+    </div>
+
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

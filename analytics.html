@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Analytics Dashboard - Loan Prediction</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="bg-animation">
+    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+    <div class="bubble"></div><div class="bubble"></div>
+  </div>
+
+  <div class="analytics-container">
+
+    <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Predictor</a>
+
+    <div class="analytics-header">
+      <div class="logo-icon" style="margin:0 auto 14px;"><i class="fas fa-chart-pie"></i></div>
+      <h1>Loan Analytics Dashboard</h1>
+      <p>Insights from 5,000 bank customer records</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="stats-row">
+      <div class="stat-card" style="animation-delay:0.05s">
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
+        <div class="stat-value">5,000</div>
+        <div class="stat-label">Total Customers</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.1s">
+        <div class="stat-icon"><i class="fas fa-circle-check"></i></div>
+        <div class="stat-value">480</div>
+        <div class="stat-label">Loan Approved</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.15s">
+        <div class="stat-icon"><i class="fas fa-chart-column"></i></div>
+        <div class="stat-value">9.6%</div>
+        <div class="stat-label">Approval Rate</div>
+      </div>
+      <div class="stat-card" style="animation-delay:0.2s">
+        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-value">$144K</div>
+        <div class="stat-label">Avg Income (Approved)</div>
+      </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="dashboard-grid">
+
+      <div class="dash-card" style="animation-delay:0.1s">
+        <h3><i class="fas fa-chart-pie"></i> Loan Approval Distribution</h3>
+        <canvas id="loanPie"></canvas>
+      </div>
+
+      <div class="dash-card" style="animation-delay:0.15s">
+        <h3><i class="fas fa-graduation-cap"></i> Approval Rate by Education</h3>
+        <canvas id="eduBar"></canvas>
+      </div>
+
+      <div class="dash-card" style="animation-delay:0.2s">
+        <h3><i class="fas fa-dollar-sign"></i> Avg Income: Approved vs Not</h3>
+        <canvas id="incomeBar"></canvas>
+      </div>
+
+      <div class="dash-card" style="animation-delay:0.25s">
+        <h3><i class="fas fa-users"></i> Customers by Family Size</h3>
+        <canvas id="familyBar"></canvas>
+      </div>
+
+      <div class="dash-card" style="animation-delay:0.3s">
+        <h3><i class="fas fa-piggy-bank"></i> CD Account vs Approval Rate</h3>
+        <canvas id="cdPie"></canvas>
+      </div>
+
+      <div class="dash-card" style="animation-delay:0.35s">
+        <h3><i class="fas fa-wifi"></i> Online Banking vs Approval Rate</h3>
+        <canvas id="onlinePie"></canvas>
+      </div>
+
+      <div class="dash-card full" style="animation-delay:0.4s">
+        <h3><i class="fas fa-credit-card"></i> Avg CC Spending: Approved vs Not Approved</h3>
+        <canvas id="ccBar"></canvas>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='chart.min.js') }}"></script>
+  <script>
+    const PURPLE = "rgba(167,139,250,0.8)";
+    const GREEN  = "rgba(16,185,129,0.8)";
+    const RED    = "rgba(239,68,68,0.8)";
+    const BLUE   = "rgba(102,126,234,0.8)";
+    const ORANGE = "rgba(251,146,60,0.8)";
+
+    const tickStyle = { color: "rgba(255,255,255,0.6)", font: { family: "Poppins", size: 11 } };
+    const gridStyle = { color: "rgba(255,255,255,0.07)" };
+    const legendStyle = { labels: { color: "rgba(255,255,255,0.7)", font: { family: "Poppins" } } };
+
+    fetch("/chart-data").then(r => r.json()).then(d => {
+
+      // 1. Loan Approval Pie
+      new Chart(document.getElementById("loanPie"), {
+        type: "doughnut",
+        data: {
+          labels: ["Not Approved (90.4%)", "Approved (9.6%)"],
+          datasets: [{
+            data: [d.loan_counts["0"], d.loan_counts["1"]],
+            backgroundColor: [RED, GREEN],
+            borderColor: ["#1a1a2e"],
+            borderWidth: 3,
+            hoverOffset: 10
+          }]
+        },
+        options: {
+          cutout: "65%",
+          animation: { animateRotate: true, duration: 1400 },
+          plugins: { legend: legendStyle }
+        }
+      });
+
+      // 2. Approval Rate by Education Bar
+      new Chart(document.getElementById("eduBar"), {
+        type: "bar",
+        data: {
+          labels: ["Undergraduate", "Graduate", "Advanced"],
+          datasets: [{
+            label: "Approval Rate (%)",
+            data: [d.approval_by_edu["1"], d.approval_by_edu["2"], d.approval_by_edu["3"]],
+            backgroundColor: [BLUE, PURPLE, GREEN],
+            borderRadius: 10
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: tickStyle, grid: gridStyle },
+            y: { ticks: tickStyle, grid: gridStyle, title: { display: true, text: "Approval %", color: "rgba(255,255,255,0.4)" } }
+          }
+        }
+      });
+
+      // 3. Avg Income Bar
+      new Chart(document.getElementById("incomeBar"), {
+        type: "bar",
+        data: {
+          labels: ["Not Approved", "Approved"],
+          datasets: [{
+            label: "Avg Income ($K)",
+            data: [d.income_by_loan["0"], d.income_by_loan["1"]],
+            backgroundColor: [RED, GREEN],
+            borderRadius: 10
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: tickStyle, grid: gridStyle },
+            y: { ticks: tickStyle, grid: gridStyle }
+          }
+        }
+      });
+
+      // 4. Family Size Bar
+      new Chart(document.getElementById("familyBar"), {
+        type: "bar",
+        data: {
+          labels: ["1 Member", "2 Members", "3 Members", "4 Members"],
+          datasets: [{
+            label: "Customers",
+            data: [d.family_counts["1"], d.family_counts["2"], d.family_counts["3"], d.family_counts["4"]],
+            backgroundColor: [BLUE, PURPLE, ORANGE, GREEN],
+            borderRadius: 10
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: tickStyle, grid: gridStyle },
+            y: { ticks: tickStyle, grid: gridStyle }
+          }
+        }
+      });
+
+      // 5. CD Account Pie
+      new Chart(document.getElementById("cdPie"), {
+        type: "pie",
+        data: {
+          labels: ["No CD Account", "Has CD Account"],
+          datasets: [{
+            data: [d.cd_approval["0"], d.cd_approval["1"]],
+            backgroundColor: [RED, GREEN],
+            borderColor: ["#1a1a2e"],
+            borderWidth: 3,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          plugins: {
+            legend: legendStyle,
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}% approval rate` } }
+          }
+        }
+      });
+
+      // 6. Online Banking Pie
+      new Chart(document.getElementById("onlinePie"), {
+        type: "pie",
+        data: {
+          labels: ["Offline Banking", "Online Banking"],
+          datasets: [{
+            data: [d.online_approval["0"], d.online_approval["1"]],
+            backgroundColor: [ORANGE, BLUE],
+            borderColor: ["#1a1a2e"],
+            borderWidth: 3,
+            hoverOffset: 8
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          plugins: {
+            legend: legendStyle,
+            tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}% approval rate` } }
+          }
+        }
+      });
+
+      // 7. CC Avg Bar
+      new Chart(document.getElementById("ccBar"), {
+        type: "bar",
+        data: {
+          labels: ["Not Approved", "Approved"],
+          datasets: [{
+            label: "Avg Monthly CC Spending ($K)",
+            data: [d.ccavg_by_loan["0"], d.ccavg_by_loan["1"]],
+            backgroundColor: [RED, PURPLE],
+            borderRadius: 10,
+            barThickness: 60
+          }]
+        },
+        options: {
+          animation: { duration: 1200 },
+          indexAxis: "y",
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { ticks: tickStyle, grid: gridStyle },
+            y: { ticks: tickStyle, grid: gridStyle }
+          }
+        }
+      });
+
+    });
+  </script>
+</body>
+</html>

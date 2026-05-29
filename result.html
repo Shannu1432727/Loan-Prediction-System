@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Loan Result</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+  <div class="bg-animation">
+    <div class="bubble"></div><div class="bubble"></div><div class="bubble"></div>
+    <div class="bubble"></div><div class="bubble"></div>
+  </div>
+
+  <div class="analytics-container">
+
+    <a href="/" class="back-link"><i class="fas fa-arrow-left"></i> Back to Predictor</a>
+
+    <!-- Result Banner -->
+    {% if eligible %}
+      {% set result_class = "eligible" %}
+      {% set result_icon = "fa-circle-check" %}
+    {% else %}
+      {% set result_class = "not-eligible" %}
+      {% set result_icon = "fa-circle-xmark" %}
+    {% endif %}
+
+    <div class="result-banner {{ result_class }}">
+      <div class="result-banner-icon">
+        <i class="fas {{ result_icon }}"></i>
+      </div>
+      <div>
+        <h2>{{ prediction }}</h2>
+        <p>{{ 'Congratulations! You qualify for a personal loan.' if eligible else 'Unfortunately, you do not meet the eligibility criteria at this time.' }}</p>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="stats-row" style="margin-top:24px;">
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-user"></i></div>
+        <div class="stat-value">{{ age }}</div>
+        <div class="stat-label">Age (yrs)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+        <div class="stat-value">{{ experience }}</div>
+        <div class="stat-label">Experience (yrs)</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-value">${{ income }}K</div>
+        <div class="stat-label">Annual Income</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i class="fas fa-house"></i></div>
+        <div class="stat-value">${{ mortgage }}K</div>
+        <div class="stat-label">Mortgage</div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="dashboard-grid" style="margin-top:24px;">
+
+      <div class="dash-card">
+        <h3><i class="fas fa-chart-pie"></i> Eligibility Score</h3>
+        <canvas id="pieChart"></canvas>
+      </div>
+
+      <div class="dash-card">
+        <h3><i class="fas fa-chart-line"></i> Your Profile Radar</h3>
+        <canvas id="radarChart"></canvas>
+      </div>
+
+      <div class="dash-card full">
+        <h3><i class="fas fa-chart-bar"></i> Your Profile vs Avg Approved Applicant</h3>
+        <canvas id="barChart"></canvas>
+      </div>
+
+    </div>
+
+    <div style="text-align:center; margin-top:24px;">
+      <a href="/analytics" class="back-link" style="font-size:14px;">
+        <i class="fas fa-chart-bar"></i> View Full Analytics Dashboard
+      </a>
+    </div>
+
+  </div>
+
+  <script id="app-data" type="application/json">
+    {
+      "eligible":   {{ eligible | tojson }},
+      "income":     {{ income | float | tojson }},
+      "ccavg":      {{ ccavg | float | tojson }},
+      "mortgage":   {{ mortgage | float | tojson }},
+      "experience": {{ experience | float | tojson }},
+      "family":     {{ family | float | tojson }},
+      "education":  {{ education | float | tojson }},
+      "age":        {{ age | float | tojson }}
+    }
+  </script>
+  <script src="{{ url_for('static', filename='chart.min.js') }}"></script>
+  <script>
+    const _d      = JSON.parse(document.getElementById("app-data").textContent);
+    const eligible = _d.eligible;
+    const score    = eligible ? 82 : 28;
+    const data     = _d;
+
+    const tickStyle  = { color: "rgba(255,255,255,0.6)", font: { family: "Poppins", size: 11 } };
+    const gridStyle  = { color: "rgba(255,255,255,0.07)" };
+    const legendOpts = { labels: { color: "rgba(255,255,255,0.7)", font: { family: "Poppins" } } };
+
+    // --- Doughnut: Eligibility Score ---
+    new Chart(document.getElementById("pieChart"), {
+      type: "doughnut",
+      data: {
+        labels: ["Eligible Score", "Gap"],
+        datasets: [{
+          data: [score, 100 - score],
+          backgroundColor: [eligible ? "#10b981" : "#ef4444", "rgba(255,255,255,0.08)"],
+          borderColor:     [eligible ? "#10b981" : "#ef4444", "rgba(255,255,255,0.05)"],
+          borderWidth: 2,
+          hoverOffset: 8
+        }]
+      },
+      options: {
+        cutout: "72%",
+        animation: { animateRotate: true, duration: 1400 },
+        plugins: {
+          legend: legendOpts,
+          tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed}%` } }
+        }
+      },
+      plugins: [{
+        id: "centerText",
+        afterDraw(chart) {
+          const { ctx, chartArea: { width, height, left, top } } = chart;
+          ctx.save();
+          ctx.font = "bold 26px Poppins";
+          ctx.fillStyle = "#fff";
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(`${score}%`, left + width / 2, top + height / 2);
+          ctx.restore();
+        }
+      }]
+    });
+
+    // --- Radar: Profile ---
+    new Chart(document.getElementById("radarChart"), {
+      type: "radar",
+      data: {
+        labels: ["Income", "CC Spending", "Mortgage", "Experience", "Family", "Education"],
+        datasets: [{
+          label: "Your Profile",
+          data: [
+            Math.min(data.income     / 224 * 100, 100).toFixed(1),
+            Math.min(data.ccavg      / 10  * 100, 100).toFixed(1),
+            Math.min(data.mortgage   / 635 * 100, 100).toFixed(1),
+            Math.min(data.experience / 43  * 100, 100).toFixed(1),
+            ((data.family    - 1) / 3 * 100).toFixed(1),
+            ((data.education - 1) / 2 * 100).toFixed(1)
+          ],
+          backgroundColor: "rgba(167,139,250,0.2)",
+          borderColor: "#a78bfa",
+          pointBackgroundColor: "#a78bfa",
+          borderWidth: 2,
+          pointRadius: 4
+        }]
+      },
+      options: {
+        animation: { duration: 1200 },
+        scales: {
+          r: {
+            min: 0, max: 100,
+            ticks: { display: false },
+            grid:        { color: "rgba(255,255,255,0.1)" },
+            angleLines:  { color: "rgba(255,255,255,0.1)" },
+            pointLabels: { color: "rgba(255,255,255,0.7)", font: { family: "Poppins", size: 11 } }
+          }
+        },
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    // --- Bar: User vs Avg Approved ---
+    new Chart(document.getElementById("barChart"), {
+      type: "bar",
+      data: {
+        labels: ["Income ($K)", "CC Avg ($K)", "Mortgage ($K)", "Age", "Experience"],
+        datasets: [
+          {
+            label: "Your Values",
+            data: [data.income, data.ccavg, data.mortgage, data.age, data.experience],
+            backgroundColor: "rgba(102,126,234,0.85)",
+            borderRadius: 8
+          },
+          {
+            label: "Avg Approved Applicant",
+            data: [144.7, 3.9, 101.0, 45.0, 20.0],
+            backgroundColor: "rgba(16,185,129,0.65)",
+            borderRadius: 8
+          }
+        ]
+      },
+      options: {
+        animation: { duration: 1200 },
+        responsive: true,
+        scales: {
+          x: { ticks: tickStyle, grid: gridStyle },
+          y: { ticks: tickStyle, grid: gridStyle }
+        },
+        plugins: { legend: legendOpts }
+      }
+    });
+  </script>
+</body>
+</html>
