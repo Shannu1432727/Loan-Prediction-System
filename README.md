@@ -49,4 +49,26 @@ The model is trained on historical loan application data and predicts whether a 
 
 ---
 
-## 📂 Project Structure
+⚙️ Machine Learning Workflow
+
+### 1. Data Collection
+Loan application data is collected from the dataset.
+
+### 2. Data Preprocessing
+- Handling missing values
+- Encoding categorical variables
+- Feature selection
+- Data normalization
+
+### 3. Model Training
+The Support Vector Machine (SVM) classifier is trained using the processed dataset.
+
+### 4. Model Evaluation
+Performance is evaluated using:
+- Accuracy Score
+- Confusion Matrix
+- Classification Report
+
+### 5. Deployment
+The trained model is integrated into a Flask application for real-time predictions.
+
